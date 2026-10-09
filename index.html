@@ -14,12 +14,16 @@
 </head>
 <body>
 
+  <!-- Overlay para fechar abas/menus sobrepostos no Mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
   <div class="app-container">
     <!-- Menu Lateral -->
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="logo-icon">🔮</div>
         <h2>Fin<span>Control</span></h2>
+        <button class="close-sidebar-btn" id="closeSidebarBtn">&times;</button>
       </div>
 
       <nav class="nav-menu">
@@ -144,9 +148,7 @@
                   <th>Ações</th>
                 </tr>
               </thead>
-              <tbody id="txTableBody">
-                <!-- Inserido dinamicamente via JS -->
-              </tbody>
+              <tbody id="txTableBody"></tbody>
             </table>
           </div>
         </div>
@@ -163,9 +165,7 @@
             <div class="chart-container">
               <canvas id="chartCategoryPie"></canvas>
             </div>
-            <div id="categoryBreakdown" class="category-breakdown-list">
-              <!-- Lista detalhada em texto/valores -->
-            </div>
+            <div id="categoryBreakdown" class="category-breakdown-list"></div>
           </div>
         </div>
 
@@ -239,9 +239,7 @@
           <button class="btn btn-primary" id="btnNewGoal">+ Criar Meta</button>
         </div>
 
-        <div class="goals-grid" id="goalsGrid" style="margin-top: 1.5rem;">
-          <!-- Metas renderizadas via JavaScript -->
-        </div>
+        <div class="goals-grid" id="goalsGrid" style="margin-top: 1.5rem;"></div>
       </section>
 
       <!-- SEÇÃO 6: RESERVA DE EMERGÊNCIA -->
@@ -362,9 +360,7 @@
                   <th>Ações</th>
                 </tr>
               </thead>
-              <tbody id="billsTableBody">
-                <!-- Inserido dinamicamente -->
-              </tbody>
+              <tbody id="billsTableBody"></tbody>
             </table>
           </div>
         </div>
@@ -395,7 +391,7 @@
     </main>
   </div>
 
-  <!-- MODAL DE TRANSAÇÃO -->
+  <!-- MODAIS -->
   <div class="modal-overlay" id="txModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -458,7 +454,6 @@
     </div>
   </div>
 
-  <!-- MODAL DE GOAL -->
   <div class="modal-overlay" id="goalModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -497,7 +492,6 @@
     </div>
   </div>
 
-  <!-- MODAL DE APORTE EM META -->
   <div class="modal-overlay" id="depositModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -517,7 +511,6 @@
     </div>
   </div>
 
-  <!-- MODAL DE CONTA A PAGAR -->
   <div class="modal-overlay" id="billModal">
     <div class="modal-card">
       <div class="modal-header">

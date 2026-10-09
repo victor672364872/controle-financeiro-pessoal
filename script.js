@@ -1,9 +1,7 @@
 /**
  * FinControl Pro - Módulo Principal JS
- * Utiliza Vanilla JS + LocalStorage + Chart.js
  */
 
-// STATE DA APLICAÇÃO
 const STATE_KEY = "FINCONTROL_PRO_DATA_V1";
 
 let state = {
@@ -22,10 +20,8 @@ let state = {
   }
 };
 
-// GRÁFICOS INSTANCIADOS
 let chartDashBar, chartDashPie, chartCategoryPie, chartBalanceLine, chartSimulation;
 
-// INICIALIZAÇÃO
 document.addEventListener("DOMContentLoaded", () => {
   loadStateFromLocalStorage();
   initNavigation();
@@ -36,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAll();
 });
 
-// CARREGAR E SALVAR DADOS
 function loadStateFromLocalStorage() {
   const saved = localStorage.getItem(STATE_KEY);
   if (saved) {
@@ -46,7 +41,6 @@ function loadStateFromLocalStorage() {
       console.error("Erro ao carregar dados do LocalStorage", e);
     }
   } else {
-    // Dados iniciais de demonstração
     state.transactions = [
       { id: "1", desc: "Salário Mensal", amount: 4500, type: "receita", category: "Salário", date: getTodayIso(), payment: "Pix", status: "pago" },
       { id: "2", desc: "Supermercado", amount: 650, type: "despesa", category: "Alimentação", date: getTodayIso(), payment: "Cartão de Débito", status: "pago" },
@@ -69,12 +63,36 @@ function formatBRL(val) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val || 0);
 }
 
-// NAVEGAÇÃO E INTERFACE
+// FECHAMENTO DE ABAS E MENU SOBREPOSTO
+function closeOverlays() {
+  document.getElementById("sidebar").classList.remove("active");
+  document.getElementById("sidebarOverlay").classList.remove("active");
+
+  // Fechar modais se abertos
+  document.querySelectorAll(".modal-overlay").forEach(m => m.classList.remove("active"));
+}
+
 function initNavigation() {
   const navItems = document.querySelectorAll(".nav-item");
   const sections = document.querySelectorAll(".content-section");
   const title = document.getElementById("pageTitle");
 
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  const mobileToggle = document.getElementById("mobileToggle");
+  const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+
+  // Abrir menu no mobile
+  mobileToggle.addEventListener("click", () => {
+    sidebar.classList.add("active");
+    overlay.classList.add("active");
+  });
+
+  // Fechar aba/menu ao clicar no X ou na sobreposição escura
+  closeSidebarBtn.addEventListener("click", closeOverlays);
+  overlay.addEventListener("click", closeOverlays);
+
+  // Troca de páginas
   navItems.forEach(item => {
     item.addEventListener("click", () => {
       navItems.forEach(n => n.classList.remove("active"));
@@ -85,32 +103,35 @@ function initNavigation() {
       document.getElementById(target).classList.add("active");
       title.innerText = item.innerText.trim();
 
-      // Fechar menu mobile se aberto
-      document.getElementById("sidebar").classList.remove("active");
+      closeOverlays();
     });
   });
 
-  document.getElementById("mobileToggle").addEventListener("click", () => {
-    document.getElementById("sidebar").classList.toggle("active");
+  // Fechar com a tecla ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeOverlays();
   });
 }
 
 function initModals() {
-  // Transação
   document.getElementById("btnNewTransaction").addEventListener("click", () => openTxModal());
-  document.getElementById("closeTxModal").addEventListener("click", () => closeTxModal());
-  document.getElementById("btnCancelTx").addEventListener("click", () => closeTxModal());
+  document.getElementById("closeTxModal").addEventListener("click", closeTxModal);
+  document.getElementById("btnCancelTx").addEventListener("click", closeTxModal);
 
-  // Goal
-  document.getElementById("btnNewGoal").addEventListener("click", () => openGoalModal());
-  document.getElementById("closeGoalModal").addEventListener("click", () => closeGoalModal());
+  document.getElementById("btnNewGoal").addEventListener("click", openGoalModal);
+  document.getElementById("closeGoalModal").addEventListener("click", closeGoalModal);
 
-  // Deposit
-  document.getElementById("closeDepositModal").addEventListener("click", () => closeDepositModal());
+  document.getElementById("closeDepositModal").addEventListener("click", closeDepositModal);
 
-  // Bill
-  document.getElementById("btnNewBill").addEventListener("click", () => openBillModal());
-  document.getElementById("closeBillModal").addEventListener("click", () => closeBillModal());
+  document.getElementById("btnNewBill").addEventListener("click", openBillModal);
+  document.getElementById("closeBillModal").addEventListener("click", closeBillModal);
+
+  // Fechar modal ao clicar fora da caixa do modal
+  document.querySelectorAll(".modal-overlay").forEach(modal => {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeOverlays();
+    });
+  });
 }
 
 function openTxModal(editTx = null) {
@@ -168,11 +189,9 @@ function populateCategorySelects() {
   }
 }
 
-// EVENTOS DE FORMULÁRIO
 function initFormEvents() {
   document.getElementById("txType").addEventListener("change", populateCategorySelects);
 
-  // Submit Transação
   document.getElementById("txForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const id = document.getElementById("txId").value;
@@ -198,12 +217,10 @@ function initFormEvents() {
     closeTxModal();
   });
 
-  // Filtros Transação
   ["txSearch", "txFilterType", "txFilterCategory", "txFilterStatus"].forEach(id => {
     document.getElementById(id).addEventListener("input", renderTransactionsTable);
   });
 
-  // Submit Goal
   document.getElementById("goalForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const newGoal = {
@@ -219,7 +236,6 @@ function initFormEvents() {
     closeGoalModal();
   });
 
-  // Submit Deposit
   document.getElementById("depositForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const goalId = document.getElementById("depositGoalId").value;
@@ -232,7 +248,6 @@ function initFormEvents() {
     closeDepositModal();
   });
 
-  // Submit Bill
   document.getElementById("billForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const newBill = {
@@ -248,23 +263,19 @@ function initFormEvents() {
     closeBillModal();
   });
 
-  // Simulador de Investimentos
   document.getElementById("simForm").addEventListener("submit", (e) => {
     e.preventDefault();
     runInvestmentSimulation();
   });
 
-  // Método 50/30/20
   ["b503020Income", "pctNeeds", "pctWants", "pctSavings"].forEach(id => {
     document.getElementById(id).addEventListener("input", renderBudget503020);
   });
 
-  // Reserva de Emergência
   ["emCost", "emMonths"].forEach(id => {
     document.getElementById(id).addEventListener("input", renderEmergencyPlanner);
   });
 
-  // Exportar e Importar Backup
   document.getElementById("btnExportJSON").addEventListener("click", () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
     const dlAnchor = document.createElement("a");
@@ -299,7 +310,6 @@ function initFormEvents() {
   });
 }
 
-// CÁLCULOS E RENDERS PRINCIPAIS
 function renderAll() {
   renderDashboardKPIs();
   renderTransactionsTable();
@@ -323,8 +333,6 @@ function renderDashboardKPIs() {
 
   const balance = totalIncomes - totalExpenses;
   const spentPct = totalIncomes > 0 ? ((totalExpenses / totalIncomes) * 100).toFixed(1) : 0;
-
-  // Calculando valor total guardado em metas
   const totalSavedGoals = state.goals.reduce((acc, g) => acc + g.current, 0);
 
   document.getElementById("kpiBalance").innerText = formatBRL(balance);
@@ -341,7 +349,7 @@ function renderDashboardKPIs() {
     healthBadge.innerText = "Saúde: Estável 🟡";
     healthBadge.style.color = "var(--accent-yellow)";
   } else {
-    healthBadge.innerText = "Saúde: AtENÇÃO 🔴";
+    healthBadge.innerText = "Saúde: ATENÇÃO 🔴";
     healthBadge.style.color = "var(--accent-red)";
   }
 }
@@ -373,7 +381,6 @@ function renderTransactionsTable() {
     const tr = document.createElement("tr");
     const isIncome = t.type === "receita";
     const amountFormatted = (isIncome ? "+ " : "- ") + formatBRL(t.amount);
-    const amountClass = isIncome ? "text-green" : "text-red";
     const badgeClass = t.status === "pago" ? "badge-green" : "badge-yellow";
 
     tr.innerHTML = `
@@ -404,13 +411,11 @@ function deleteTransaction(id) {
   }
 }
 
-// CÁLCULO MÉTODO 50/30/20
 function renderBudget503020() {
   const incomeInput = parseFloat(document.getElementById("b503020Income").value);
   let income = incomeInput;
 
   if (isNaN(income) || income <= 0) {
-    // Se não fornecido no input, calcula da renda cadastrada no mês
     income = state.transactions
       .filter(t => t.type === "receita" && t.status === "pago")
       .reduce((acc, t) => acc + t.amount, 0);
@@ -428,7 +433,6 @@ function renderBudget503020() {
   const targetWants = income * (wantsPct / 100);
   const targetSavings = income * (savingsPct / 100);
 
-  // Calcula gastos reais das categorias
   let spentNeeds = 0;
   let spentWants = 0;
 
@@ -483,7 +487,6 @@ function updateProgressBar(barId, statusId, current, target, isSavings = false) 
   }
 }
 
-// METAS FINANCEIRAS
 function renderGoals() {
   const container = document.getElementById("goalsGrid");
   container.innerHTML = "";
@@ -497,7 +500,6 @@ function renderGoals() {
     const missing = Math.max(0, goal.target - goal.current);
     const pct = Math.min(100, ((goal.current / goal.target) * 100)).toFixed(1);
 
-    // Meses restantes estimados com base no aporte mensal
     let monthsLeftText = "N/A";
     if (goal.monthly > 0 && missing > 0) {
       const months = Math.ceil(missing / goal.monthly);
@@ -545,7 +547,6 @@ function deleteGoal(id) {
   }
 }
 
-// RESERVA DE EMERGÊNCIA
 function renderEmergencyPlanner() {
   const cost = parseFloat(document.getElementById("emCost").value) || 0;
   const months = parseInt(document.getElementById("emMonths").value) || 6;
@@ -567,7 +568,6 @@ function renderEmergencyPlanner() {
   }
 }
 
-// CONTAS A PAGAR
 function renderBillsTable() {
   const tbody = document.getElementById("billsTableBody");
   tbody.innerHTML = "";
@@ -600,7 +600,6 @@ function payBill(id) {
   const bill = state.bills.find(b => b.id === id);
   if (bill) {
     bill.status = "pago";
-    // Cadastrar automaticamente como despesa no extrato para sincronização perfeita
     state.transactions.push({
       id: Date.now().toString(),
       desc: `Pagamento: ${bill.name}`,
@@ -620,7 +619,6 @@ function deleteBill(id) {
   saveState();
 }
 
-// SIMULADOR DE INVESTIMENTOS (JUROS COMPOSTOS COM FÓRMULA DOCUMENTADA)
 function runInvestmentSimulation() {
   const initial = parseFloat(document.getElementById("simInitial").value) || 0;
   const monthly = parseFloat(document.getElementById("simMonthly").value) || 0;
@@ -631,7 +629,6 @@ function runInvestmentSimulation() {
 
   const totalMonths = periodType === "years" ? periodInput * 12 : periodInput;
 
-  // Conversão da taxa anual para taxa mensal equivalente: (1 + i_ano)^(1/12) - 1
   let monthlyRate = 0;
   if (rateType === "annual") {
     monthlyRate = Math.pow(1 + (rateInput / 100), 1 / 12) - 1;
@@ -665,7 +662,6 @@ function runInvestmentSimulation() {
   updateSimulationChart(labels, dataTotal, dataInvested);
 }
 
-// GRÁFICOS (CHART.JS)
 function initCharts() {
   const ctxDashBar = document.getElementById("chartDashBar").getContext("2d");
   chartDashBar = new Chart(ctxDashBar, {
@@ -692,80 +688,4 @@ function initCharts() {
   chartBalanceLine = new Chart(ctxBalanceLine, {
     type: "line",
     data: { labels: [], datasets: [] },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  const ctxSim = document.getElementById("chartSimulation").getContext("2d");
-  chartSimulation = new Chart(ctxSim, {
-    type: "line",
-    data: { labels: [], datasets: [] },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-}
-
-function updateChartsData() {
-  // Gráfico da Categoria de Gastos
-  const expensesByCategory = {};
-  state.transactions.forEach(t => {
-    if (t.type === "despesa" && t.status === "pago") {
-      expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
-    }
-  });
-
-  const catLabels = Object.keys(expensesByCategory);
-  const catValues = Object.values(expensesByCategory);
-
-  const colors = ["#8b5cf6", "#ec4899", "#3b82f6", "#10b981", "#f59e0b", "#6366f1", "#14b8a6"];
-
-  chartDashPie.data = {
-    labels: catLabels,
-    datasets: [{ data: catValues, backgroundColor: colors }]
-  };
-  chartDashPie.update();
-
-  chartCategoryPie.data = {
-    labels: catLabels,
-    datasets: [{ data: catValues, backgroundColor: colors }]
-  };
-  chartCategoryPie.update();
-
-  // Detalhamento textual
-  const breakdownContainer = document.getElementById("categoryBreakdown");
-  const totalExp = catValues.reduce((a, b) => a + b, 0);
-  breakdownContainer.innerHTML = "";
-
-  catLabels.forEach((cat, idx) => {
-    const val = catValues[idx];
-    const pct = totalExp > 0 ? ((val / totalExp) * 100).toFixed(1) : 0;
-    breakdownContainer.innerHTML += `
-      <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; border-bottom:1px solid #222; padding-bottom:0.25rem;">
-        <span>${cat}</span>
-        <strong>${formatBRL(val)} (${pct}%)</strong>
-      </div>
-    `;
-  });
-
-  // Gráfico de Barras Receita vs Despesa
-  let totalInc = state.transactions.filter(t => t.type === "receita" && t.status === "pago").reduce((a,b)=>a+b.amount,0);
-  let totalExpVal = totalExp;
-
-  chartDashBar.data = {
-    labels: ["Mês Atual"],
-    datasets: [
-      { label: "Receitas", data: [totalInc], backgroundColor: "#10b981" },
-      { label: "Despesas", data: [totalExpVal], backgroundColor: "#ef4444" }
-    ]
-  };
-  chartDashBar.update();
-}
-
-function updateSimulationChart(labels, totalData, investedData) {
-  chartSimulation.data = {
-    labels: labels,
-    datasets: [
-      { label: "Patrimônio Total", data: totalData, borderColor: "#8b5cf6", backgroundColor: "rgba(139, 92, 246, 0.1)", fill: true },
-      { label: "Total Aportado", data: investedData, borderColor: "#3b82f6", borderDash: [5, 5] }
-    ]
-  };
-  chartSimulation.update();
-}
+    options: { responsive: true, maintainAspectRatio

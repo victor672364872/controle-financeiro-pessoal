@@ -33,6 +33,26 @@ body {
   overflow-x: hidden;
 }
 
+/* OVERLAY DE ABAS E MENU LATERAL SOBREPOSTOS */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  z-index: 90;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
 /* Layout Geral */
 .app-container {
   display: flex;
@@ -53,7 +73,7 @@ body {
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
   margin-bottom: 2rem;
 }
 
@@ -64,6 +84,15 @@ body {
 
 .brand h2 span {
   color: var(--primary);
+}
+
+.close-sidebar-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
 .nav-menu {
@@ -363,7 +392,7 @@ body {
   margin-top: 1.25rem;
 }
 
-/* Responsividade */
+/* Responsividade e Abas Sobrepostas */
 @media (max-width: 768px) {
   .app-container {
     flex-direction: column;
@@ -371,13 +400,19 @@ body {
 
   .sidebar {
     position: fixed;
-    left: -260px;
+    left: -280px;
     top: 0;
     bottom: 0;
+    width: 280px;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.5);
   }
 
   .sidebar.active {
     left: 0;
+  }
+
+  .close-sidebar-btn {
+    display: block;
   }
 
   .mobile-toggle {
