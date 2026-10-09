@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinControl Pro | Gestão Financeira Pessoal</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Fonte Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Menu Lateral -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo-icon">🔮</div>
+        <h2>Fin<span>Control</span></h2>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-target="dashboard">
+          <span class="icon">📊</span> Dashboard
+        </button>
+        <button class="nav-item" data-target="transactions">
+          <span class="icon">💳</span> Movimentações
+        </button>
+        <button class="nav-item" data-target="analytics">
+          <span class="icon">📈</span> Análise & Gastos
+        </button>
+        <button class="nav-item" data-target="budget503020">
+          <span class="icon">⚖️</span> Orçamento 50/30/20
+        </button>
+        <button class="nav-item" data-target="goals">
+          <span class="icon">🎯</span> Metas Financeiras
+        </button>
+        <button class="nav-item" data-target="emergency">
+          <span class="icon">🛡️</span> Reserva Emergência
+        </button>
+        <button class="nav-item" data-target="investment">
+          <span class="icon">🚀</span> Simulador Investimentos
+        </button>
+        <button class="nav-item" data-target="bills">
+          <span class="icon">📅</span> Contas a Pagar
+        </button>
+        <button class="nav-item" data-target="backup">
+          <span class="icon">⚙️</span> Configurações / Backup
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Dados armazenados no navegador (Local Storage).</p>
+      </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+      <!-- Topbar / Header Responsivo -->
+      <header class="topbar">
+        <button class="mobile-toggle" id="mobileToggle">☰</button>
+        <h1 id="pageTitle">Dashboard Financeiro</h1>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="btnNewTransaction">+ Nova Transação</button>
+        </div>
+      </header>
+
+      <!-- SEÇÃO 1: DASHBOARD -->
+      <section id="dashboard" class="content-section active">
+        <div class="kpi-grid">
+          <div class="card kpi-card">
+            <span class="kpi-label">Saldo Atual</span>
+            <div class="kpi-value" id="kpiBalance">R$ 0,00</div>
+            <span class="kpi-sub" id="healthBadge">Saúde: -</span>
+          </div>
+
+          <div class="card kpi-card green">
+            <span class="kpi-label">Receitas do Mês</span>
+            <div class="kpi-value" id="kpiIncomes">R$ 0,00</div>
+          </div>
+
+          <div class="card kpi-card red">
+            <span class="kpi-label">Despesas do Mês</span>
+            <div class="kpi-value" id="kpiExpenses">R$ 0,00</div>
+            <span class="kpi-sub" id="kpiSpentPercent">0% da renda gasto</span>
+          </div>
+
+          <div class="card kpi-card purple">
+            <span class="kpi-label">Guardado (Metas + Reserva)</span>
+            <div class="kpi-value" id="kpiSaved">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div class="grid-2col">
+          <div class="card">
+            <h3>Receitas vs Despesas (Últimos 6 Meses)</h3>
+            <div class="chart-container">
+              <canvas id="chartDashBar"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Distribuição de Gastos do Mês</h3>
+            <div class="chart-container">
+              <canvas id="chartDashPie"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 2: MOVIMENTAÇÕES -->
+      <section id="transactions" class="content-section">
+        <div class="card">
+          <div class="filter-bar">
+            <input type="text" id="txSearch" placeholder="Pesquisar descrição..." class="input-field">
+            <select id="txFilterType" class="input-field">
+              <option value="">Todos os Tipos</option>
+              <option value="receita">Receita</option>
+              <option value="despesa">Despesa</option>
+            </select>
+            <select id="txFilterCategory" class="input-field">
+              <option value="">Todas as Categorias</option>
+            </select>
+            <select id="txFilterStatus" class="input-field">
+              <option value="">Todos os Status</option>
+              <option value="pago">Pago / Recebido</option>
+              <option value="pendente">Pendente</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>Tipo</th>
+                  <th>Status</th>
+                  <th>Valor</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="txTableBody">
+                <!-- Inserido dinamicamente via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 3: ANÁLISE & GASTOS -->
+      <section id="analytics" class="content-section">
+        <div class="card">
+          <div class="section-header">
+            <h3>Análise Detalhada por Categoria</h3>
+            <input type="month" id="analyticsMonth" class="input-field">
+          </div>
+          <div class="grid-2col">
+            <div class="chart-container">
+              <canvas id="chartCategoryPie"></canvas>
+            </div>
+            <div id="categoryBreakdown" class="category-breakdown-list">
+              <!-- Lista detalhada em texto/valores -->
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 1.5rem;">
+          <h3>Evolução do Saldo</h3>
+          <div class="chart-container">
+            <canvas id="chartBalanceLine"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 4: MÉTODO 50/30/20 -->
+      <section id="budget503020" class="content-section">
+        <div class="card">
+          <h3>Calculadora e Planejamento 50/30/20</h3>
+          <p class="section-desc">Divida sua renda líquida em Necessidades (50%), Desejos (30%) e Objetivos Financeiros (20%).</p>
+          
+          <div class="grid-2col">
+            <div class="form-group">
+              <label>Renda Mensal para Cálculo (R$)</label>
+              <input type="number" id="b503020Income" class="input-field" placeholder="Ex: 5000">
+            </div>
+            <div class="form-group">
+              <label>Ajustar Porcentagens (%) [Necessidades / Desejos / Investimentos]</label>
+              <div class="grid-3col">
+                <input type="number" id="pctNeeds" class="input-field" value="50">
+                <input type="number" id="pctWants" class="input-field" value="30">
+                <input type="number" id="pctSavings" class="input-field" value="20">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3col" style="margin-top: 1.5rem;">
+          <div class="card budget-card">
+            <h4>Necessidades (<span id="lblNeedsPct">50</span>%)</h4>
+            <div class="b-amount" id="bNeedsTarget">R$ 0,00</div>
+            <div class="b-spent">Gasto Atual: <span id="bNeedsSpent">R$ 0,00</span></div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="pbNeeds"></div>
+            </div>
+            <small id="statusNeeds" class="budget-status">Dentro do limite</small>
+          </div>
+
+          <div class="card budget-card">
+            <h4>Desejos (<span id="lblWantsPct">30</span>%)</h4>
+            <div class="b-amount" id="bWantsTarget">R$ 0,00</div>
+            <div class="b-spent">Gasto Atual: <span id="bWantsSpent">R$ 0,00</span></div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="pbWants"></div>
+            </div>
+            <small id="statusWants" class="budget-status">Dentro do limite</small>
+          </div>
+
+          <div class="card budget-card">
+            <h4>Objetivos / Poupança (<span id="lblSavingsPct">20</span>%)</h4>
+            <div class="b-amount" id="bSavingsTarget">R$ 0,00</div>
+            <div class="b-spent">Guardado/Investido: <span id="bSavingsSpent">R$ 0,00</span></div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="pbSavings"></div>
+            </div>
+            <small id="statusSavings" class="budget-status">Dentro do limite</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 5: METAS FINANCEIRAS -->
+      <section id="goals" class="content-section">
+        <div class="card-header-flex">
+          <h3>Suas Metas Financeiras</h3>
+          <button class="btn btn-primary" id="btnNewGoal">+ Criar Meta</button>
+        </div>
+
+        <div class="goals-grid" id="goalsGrid" style="margin-top: 1.5rem;">
+          <!-- Metas renderizadas via JavaScript -->
+        </div>
+      </section>
+
+      <!-- SEÇÃO 6: RESERVA DE EMERGÊNCIA -->
+      <section id="emergency" class="content-section">
+        <div class="card">
+          <h3>Planejador de Reserva de Emergência</h3>
+          <p class="section-desc">Calcule a reserva ideal com base em seus custos essenciais recorrentes.</p>
+
+          <div class="grid-2col">
+            <div class="form-group">
+              <label>Custo Mensal Essencial (R$)</label>
+              <input type="number" id="emCost" class="input-field" placeholder="Ex: 2500">
+            </div>
+            <div class="form-group">
+              <label>Meses de Cobertura Desejados</label>
+              <select id="emMonths" class="input-field">
+                <option value="3">3 Meses (Segurança Inicial)</option>
+                <option value="6" selected>6 Meses (Recomendado Padrão)</option>
+                <option value="12">12 Meses (Alta Estabilidade/Autônomo)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="em-results card-highlight" style="margin-top: 1rem;">
+            <div>Reserva Recomendada: <strong id="emTargetValue">R$ 0,00</strong></div>
+            <div>Reserva Atual Acumulada: <strong id="emCurrentValue">R$ 0,00</strong></div>
+            <div class="progress-bar-bg" style="margin-top: 0.5rem;">
+              <div class="progress-bar-fill" id="emProgressBar"></div>
+            </div>
+            <small id="emMissingText" style="display:block; margin-top:0.5rem; color: var(--text-muted);"></small>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 7: SIMULADOR DE INVESTIMENTOS -->
+      <section id="investment" class="content-section">
+        <div class="card">
+          <h3>Simulador de Projeção em Juros Compostos</h3>
+          <p class="section-desc">Nota: Os resultados são simulações matemáticas puras. Impostos, taxas e variação de inflação devem ser considerados individualmente.</p>
+
+          <form id="simForm" class="grid-3col">
+            <div class="form-group">
+              <label>Capital Inicial (R$)</label>
+              <input type="number" id="simInitial" class="input-field" value="1000" required>
+            </div>
+            <div class="form-group">
+              <label>Aporte Mensal (R$)</label>
+              <input type="number" id="simMonthly" class="input-field" value="300" required>
+            </div>
+            <div class="form-group">
+              <label>Taxa de Rentabilidade (%)</label>
+              <input type="number" step="0.01" id="simRate" class="input-field" value="10" required>
+            </div>
+            <div class="form-group">
+              <label>Tipo de Taxa</label>
+              <select id="simRateType" class="input-field">
+                <option value="annual" selected>Ao Ano (% a.a.)</option>
+                <option value="monthly">Ao Mês (% a.m.)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Prazo</label>
+              <input type="number" id="simPeriod" class="input-field" value="5" required>
+            </div>
+            <div class="form-group">
+              <label>Unidade do Prazo</label>
+              <select id="simPeriodType" class="input-field">
+                <option value="years" selected>Anos</option>
+                <option value="months">Meses</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary" style="margin-top: 1.8rem; width:100%;">Calcular Simulação</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="grid-3col" style="margin-top: 1.5rem;">
+          <div class="card kpi-card">
+            <span class="kpi-label">Total Aportado</span>
+            <div class="kpi-value" id="simResultInvested">R$ 0,00</div>
+          </div>
+          <div class="card kpi-card green">
+            <span class="kpi-label">Total em Juros</span>
+            <div class="kpi-value" id="simResultInterest">R$ 0,00</div>
+          </div>
+          <div class="card kpi-card purple">
+            <span class="kpi-label">Patrimônio Final Estimado</span>
+            <div class="kpi-value" id="simResultTotal">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 1.5rem;">
+          <h3>Evolução Patrimonial Simulada</h3>
+          <div class="chart-container">
+            <canvas id="chartSimulation"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 8: CONTAS A PAGAR -->
+      <section id="bills" class="content-section">
+        <div class="card">
+          <div class="card-header-flex">
+            <h3>Contas e Compromissos a Pagar</h3>
+            <button class="btn btn-primary" id="btnNewBill">+ Nova Conta</button>
+          </div>
+
+          <div class="table-responsive" style="margin-top: 1rem;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Vencimento</th>
+                  <th>Nome da Conta</th>
+                  <th>Categoria</th>
+                  <th>Valor</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="billsTableBody">
+                <!-- Inserido dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 9: BACKUP E CONFIGURAÇÕES -->
+      <section id="backup" class="content-section">
+        <div class="card">
+          <h3>Gerenciamento de Dados Locais (JSON)</h3>
+          <p class="section-desc">Seus dados ficam armazenados exclusivamente no seu navegador (LocalStorage). Utilize as opções abaixo para fazer backup de segurança.</p>
+
+          <div class="grid-2col" style="margin-top: 1.5rem;">
+            <div>
+              <h4>Exportar Dados</h4>
+              <p>Baixe um arquivo contendo todas as suas movimentações, metas e configurações.</p>
+              <button class="btn btn-secondary" id="btnExportJSON">Exportar Backup (.json)</button>
+            </div>
+            <div>
+              <h4>Importar Dados</h4>
+              <p>Restaure seus dados selecionando um arquivo de backup baixado anteriormente.</p>
+              <input type="file" id="importFileInput" accept=".json" style="display:none;">
+              <button class="btn btn-primary" id="btnImportJSON">Importar Arquivo (.json)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL DE TRANSAÇÃO -->
+  <div class="modal-overlay" id="txModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTxTitle">Nova Transação</h3>
+        <button class="close-modal" id="closeTxModal">&times;</button>
+      </div>
+      <form id="txForm">
+        <input type="hidden" id="txId">
+        <div class="form-group">
+          <label>Descrição</label>
+          <input type="text" id="txDesc" class="input-field" placeholder="Ex: Salário, Supermercado..." required>
+        </div>
+        <div class="grid-2col">
+          <div class="form-group">
+            <label>Valor (R$)</label>
+            <input type="number" step="0.01" id="txAmount" class="input-field" placeholder="0.00" required>
+          </div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="txType" class="input-field" required>
+              <option value="despesa">Despesa</option>
+              <option value="receita">Receita</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2col">
+          <div class="form-group">
+            <label>Categoria</label>
+            <select id="txCategory" class="input-field" required></select>
+          </div>
+          <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="txDate" class="input-field" required>
+          </div>
+        </div>
+        <div class="grid-2col">
+          <div class="form-group">
+            <label>Forma de Pagamento</label>
+            <select id="txPayment" class="input-field">
+              <option value="Pix">Pix</option>
+              <option value="Cartão de Crédito">Cartão de Crédito</option>
+              <option value="Cartão de Débito">Cartão de Débito</option>
+              <option value="Boleto">Boleto</option>
+              <option value="Dinheiro">Dinheiro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="txStatus" class="input-field">
+              <option value="pago">Efetivado / Pago / Recebido</option>
+              <option value="pendente">Pendente</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btnCancelTx">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE GOAL -->
+  <div class="modal-overlay" id="goalModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Cadastrar Nova Meta</h3>
+        <button class="close-modal" id="closeGoalModal">&times;</button>
+      </div>
+      <form id="goalForm">
+        <div class="form-group">
+          <label>Nome da Meta</label>
+          <input type="text" id="goalName" class="input-field" placeholder="Ex: Viagem de Férias" required>
+        </div>
+        <div class="grid-2col">
+          <div class="form-group">
+            <label>Valor Alvo (R$)</label>
+            <input type="number" step="0.01" id="goalTarget" class="input-field" required>
+          </div>
+          <div class="form-group">
+            <label>Valor Atual Já Acumulado (R$)</label>
+            <input type="number" step="0.01" id="goalCurrent" class="input-field" value="0">
+          </div>
+        </div>
+        <div class="grid-2col">
+          <div class="form-group">
+            <label>Aporte Mensal Previsto (R$)</label>
+            <input type="number" step="0.01" id="goalMonthly" class="input-field" value="0">
+          </div>
+          <div class="form-group">
+            <label>Prazo Limite</label>
+            <input type="date" id="goalDeadline" class="input-field" required>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Criar Meta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE APORTE EM META -->
+  <div class="modal-overlay" id="depositModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Adicionar Aporte à Meta</h3>
+        <button class="close-modal" id="closeDepositModal">&times;</button>
+      </div>
+      <form id="depositForm">
+        <input type="hidden" id="depositGoalId">
+        <div class="form-group">
+          <label>Valor do Aporte (R$)</label>
+          <input type="number" step="0.01" id="depositAmount" class="input-field" required>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Confirmar Aporte</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONTA A PAGAR -->
+  <div class="modal-overlay" id="billModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Nova Conta a Pagar</h3>
+        <button class="close-modal" id="closeBillModal">&times;</button>
+      </div>
+      <form id="billForm">
+        <div class="form-group">
+          <label>Nome da Conta</label>
+          <input type="text" id="billName" class="input-field" placeholder="Ex: Aluguel, Internet..." required>
+        </div>
+        <div class="grid-2col">
+          <div class="form-group">
+            <label>Valor (R$)</label>
+            <input type="number" step="0.01" id="billAmount" class="input-field" required>
+          </div>
+          <div class="form-group">
+            <label>Vencimento</label>
+            <input type="date" id="billDueDate" class="input-field" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Categoria</label>
+          <select id="billCategory" class="input-field" required></select>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Salvar Conta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
